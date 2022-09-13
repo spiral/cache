@@ -11,7 +11,7 @@ final class CacheConfig extends InjectableConfig
 {
     public const CONFIG = 'cache';
 
-    protected $config = [
+    protected array $config = [
         'default' => 'array',
         'aliases' => [],
         'typeAliases' => [],
@@ -23,7 +23,7 @@ final class CacheConfig extends InjectableConfig
      */
     public function getAliases(): array
     {
-        return (array)($this->config['aliases'] ?? []);
+        return $this->config['aliases'];
     }
 
     /**
@@ -31,10 +31,6 @@ final class CacheConfig extends InjectableConfig
      */
     public function getDefaultStorage(): string
     {
-        if (!isset($this->config['default']) || empty($this->config['default'])) {
-            throw new InvalidArgumentException('Default cache storage is not defined.');
-        }
-
         if (!\is_string($this->config['default'])) {
             throw new InvalidArgumentException('Default cache storage config value must be a string');
         }
@@ -46,7 +42,7 @@ final class CacheConfig extends InjectableConfig
     {
         if (!isset($this->config['storages'][$name])) {
             throw new InvalidArgumentException(
-                sprintf('Config for storage `%s` is not defined.', $name)
+                \sprintf('Config for storage `%s` is not defined.', $name)
             );
         }
 
@@ -54,7 +50,7 @@ final class CacheConfig extends InjectableConfig
 
         if (!isset($config['type'])) {
             throw new InvalidArgumentException(
-                sprintf('Storage type for `%s` is not defined.', $name)
+                \sprintf('Storage type for `%s` is not defined.', $name)
             );
         }
 

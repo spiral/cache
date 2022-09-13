@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Spiral\Cache\Core;
 
 use ReflectionClass;
+use Spiral\Cache\CacheRepository;
 use Spiral\Core\Container\InjectorInterface;
 use Spiral\Core\Exception\Container\ContainerException;
 use Spiral\Cache\Exception\InvalidArgumentException;
@@ -16,11 +17,9 @@ use Psr\SimpleCache\CacheInterface;
  */
 final class CacheInjector implements InjectorInterface
 {
-    private CacheStorageProviderInterface $provider;
-
-    public function __construct(CacheStorageProviderInterface $provider)
-    {
-        $this->provider = $provider;
+    public function __construct(
+        private readonly CacheStorageProviderInterface $provider
+    ) {
     }
 
     public function createInjection(ReflectionClass $class, string $context = null): CacheInterface
@@ -32,7 +31,7 @@ final class CacheInjector implements InjectorInterface
                 // Get Cache by context
                 try {
                     $connection = $this->provider->storage($context);
-                } catch (InvalidArgumentException $e) {
+                } catch (InvalidArgumentException) {
                     // Case when context doesn't match to configured connections
                     return $this->provider->storage();
                 }
@@ -53,6 +52,9 @@ final class CacheInjector implements InjectorInterface
      */
     private function matchType(ReflectionClass $class, ?string $context, CacheInterface $connection): void
     {
+        if ($connection::class === CacheRepository::class) {
+            $connection = $connection->getStorage();
+        }
         $className = $class->getName();
         if ($className !== CacheInterface::class && !$connection instanceof $className) {
             throw new \RuntimeException(
