@@ -12,7 +12,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\SimpleCache\CacheInterface;
 use Spiral\Cache\CacheManager;
 use Spiral\Cache\Config\CacheConfig;
-use Spiral\Cache\Storage\ArrayStorage;
 use Spiral\Core\FactoryInterface;
 
 final class CacheManagerTest extends TestCase
@@ -22,7 +21,8 @@ final class CacheManagerTest extends TestCase
     /** @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|FactoryInterface */
     private $factory;
 
-    private CacheManager $manager;
+    /** @var CacheManager */
+    private $manager;
 
     protected function setUp(): void
     {
@@ -70,7 +70,7 @@ final class CacheManagerTest extends TestCase
             'foo' => 'bar',
         ])->andReturn($storage);
 
-        self::assertSame($storage, $this->manager->storage()->getStorage());
+        $this->assertSame($storage, $this->manager->storage()->getStorage());
     }
 
     public function testGetStorageByName(): void
@@ -82,7 +82,7 @@ final class CacheManagerTest extends TestCase
             'foo' => 'baz',
         ])->andReturn($storage);
 
-        self::assertSame($storage, $this->manager->storage('file')->getStorage());
+        $this->assertSame($storage, $this->manager->storage('file')->getStorage());
     }
 
     public function testGetStorageWithStorageTypeAlias(): void
@@ -94,7 +94,7 @@ final class CacheManagerTest extends TestCase
             'bar' => 'baz',
         ])->andReturn($storage);
 
-        self::assertSame($storage, $this->manager->storage('inMemory')->getStorage());
+        $this->assertSame($storage, $this->manager->storage('inMemory')->getStorage());
     }
 
     public function testGetStorageByAlias(): void
@@ -106,7 +106,7 @@ final class CacheManagerTest extends TestCase
             'foo' => 'bar',
         ])->andReturn($storage);
 
-        self::assertSame($storage, $this->manager->storage('user-data')->getStorage());
+        $this->assertSame($storage, $this->manager->storage('user-data')->getStorage());
     }
 
     public function testStorageShouldBeCreatedOnlyOnce(): void
@@ -119,16 +119,16 @@ final class CacheManagerTest extends TestCase
             'foo' => 'bar',
         ])->andReturn($storage1);
 
-        self::assertSame($storage1, $this->manager->storage()->getStorage());
-        self::assertSame($storage1, $this->manager->storage()->getStorage());
+        $this->assertSame($storage1, $this->manager->storage()->getStorage());
+        $this->assertSame($storage1, $this->manager->storage()->getStorage());
 
         $this->factory->shouldReceive('make')->once()->with('file-storage-class', [
             'type' => 'file-storage-class',
             'foo' => 'baz',
         ])->andReturn($storage2);
 
-        self::assertSame($storage2, $this->manager->storage('file')->getStorage());
-        self::assertSame($storage2, $this->manager->storage('file')->getStorage());
+        $this->assertSame($storage2, $this->manager->storage('file')->getStorage());
+        $this->assertSame($storage2, $this->manager->storage('file')->getStorage());
     }
 
     public function testStorageShouldBeCreatedOnlyOnceWithDifferentPrefixes(): void
@@ -143,11 +143,11 @@ final class CacheManagerTest extends TestCase
         $blog = $this->manager->storage('blog-data');
         $news = $this->manager->storage('news-data');
 
-        self::assertSame($storage, $blog->getStorage());
-        self::assertSame($storage, $news->getStorage());
+        $this->assertSame($storage, $blog->getStorage());
+        $this->assertSame($storage, $news->getStorage());
 
-        self::assertSame('blog_', (new \ReflectionProperty($blog, 'prefix'))->getValue($blog));
-        self::assertSame('news_', (new \ReflectionProperty($news, 'prefix'))->getValue($news));
+        $this->assertSame('blog_', (new \ReflectionProperty($blog, 'prefix'))->getValue($blog));
+        $this->assertSame('news_', (new \ReflectionProperty($news, 'prefix'))->getValue($news));
     }
 
     #[DataProvider('prefixesDataProvider')]
@@ -162,8 +162,8 @@ final class CacheManagerTest extends TestCase
 
         $repo = $this->manager->storage($alias);
 
-        self::assertSame($storage, $repo->getStorage());
-        self::assertSame($expectedPrefix, (new \ReflectionProperty($repo, 'prefix'))->getValue($repo));
+        $this->assertSame($storage, $repo->getStorage());
+        $this->assertSame($expectedPrefix, (new \ReflectionProperty($repo, 'prefix'))->getValue($repo));
     }
 
     public function testCacheRepositoryWithoutEventDispatcher(): void
@@ -183,7 +183,7 @@ final class CacheManagerTest extends TestCase
         ]), $this->factory);
         $repository = $manager->storage('test');
 
-        self::assertNull((new \ReflectionProperty($repository, 'dispatcher'))->getValue($repository));
+        $this->assertNull((new \ReflectionProperty($repository, 'dispatcher'))->getValue($repository));
     }
 
     public function testCacheRepositoryWithEventDispatcher(): void
@@ -205,7 +205,10 @@ final class CacheManagerTest extends TestCase
         ]), $this->factory, $dispatcher);
         $repository = $manager->storage('test');
 
-        self::assertSame($dispatcher, (new \ReflectionProperty($repository, 'dispatcher'))->getValue($repository));
+        $this->assertSame(
+            $dispatcher,
+            (new \ReflectionProperty($repository, 'dispatcher'))->getValue($repository)
+        );
     }
 
     public static function prefixesDataProvider(): \Traversable
@@ -214,35 +217,5 @@ final class CacheManagerTest extends TestCase
         yield ['store-data', null];
         yield ['order-data', null];
         yield ['delivery-data', null];
-    }
-
-    public function testRegister(): void
-    {
-        $uniq = \uniqid();
-        $cache = new ArrayStorage();
-        $cache->set('uniq', $uniq);
-        $name = 'brandNewCache';
-        self::assertArrayNotHasKey($name, $this->manager->getCacheStorages());
-
-        $this->manager->register($name, $cache);
-        self::assertArrayHasKey($name, $this->manager->getCacheStorages());
-
-        $repo = $this->manager->storage($name);
-        self::assertSame($uniq, $repo->get('uniq'));
-    }
-
-    public function testMany(): void
-    {
-        $cache1 = new ArrayStorage();
-        $name1 = 'brandNewCache';
-        $cache2 = new ArrayStorage();
-        $name2 = 'brandNewCache2';
-
-        $this->manager->register($name1, $cache1);
-        $this->manager->register($name2, $cache2);
-        self::assertEquals([
-            $name1 => $cache1,
-            $name2 => $cache2,
-        ], $this->manager->getCacheStorages());
     }
 }

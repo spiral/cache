@@ -10,7 +10,8 @@ use Spiral\Cache\Exception\InvalidArgumentException;
 
 final class CacheConfigTest extends TestCase
 {
-    private CacheConfig $config;
+    /** @var CacheConfig */
+    private $config;
 
     protected function setUp(): void
     {
@@ -43,21 +44,30 @@ final class CacheConfigTest extends TestCase
 
     public function testGetdDefaultDriver(): void
     {
-        self::assertSame('array', $this->config->getDefaultStorage());
+        $this->assertSame(
+            'array',
+            $this->config->getDefaultStorage()
+        );
     }
 
     public function testGetsStorageConfigByStorageName(): void
     {
-        self::assertSame([
-            'type' => 'file-storage',
-        ], $this->config->getStorageConfig('filesystem'));
+        $this->assertSame(
+            [
+                'type' => 'file-storage',
+            ],
+            $this->config->getStorageConfig('filesystem')
+        );
     }
 
     public function testGetsStorageWithAliasTypeShouldBeReplacedWithRealType(): void
     {
-        self::assertSame([
-            'type' => 'array-storage',
-        ], $this->config->getStorageConfig('local'));
+        $this->assertSame(
+            [
+                'type' => 'array-storage',
+            ],
+            $this->config->getStorageConfig('local')
+        );
     }
 
     public function testNotDefinedStorageShouldThrowAnException(): void
