@@ -20,8 +20,7 @@ final class FileStorageTest extends TestCase
     /** @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|FilesInterface */
     private $files;
 
-    /** @var FileStorage */
-    private $storage;
+    private FileStorage $storage;
 
     protected function setUp(): void
     {
@@ -43,7 +42,7 @@ final class FileStorageTest extends TestCase
 
         $this->files->shouldReceive('read')->with($path)->andReturn($value);
 
-        $this->assertSame('bar', $this->storage->get('foo'));
+        self::assertSame('bar', $this->storage->get('foo'));
     }
 
     public function testGetsWithExistsValueAndNonExistsCacheFile(): void
@@ -54,7 +53,7 @@ final class FileStorageTest extends TestCase
             ->with($path)
             ->andThrow(new FileNotFoundException($path));
 
-        $this->assertNull($this->storage->get('foo'));
+        self::assertNull($this->storage->get('foo'));
     }
 
     public function testGetsWithExistsValueWithExpiredValue(): void
@@ -65,7 +64,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('exists')->with($path)->andReturn(true);
         $this->files->shouldReceive('delete')->with($path)->andReturnTrue();
 
-        $this->assertNull($this->storage->get('foo'));
+        self::assertNull($this->storage->get('foo'));
     }
 
     public function testGetsWithExistsValueWithDeadValue(): void
@@ -78,7 +77,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('exists')->with($path)->andReturnTrue();
         $this->files->shouldReceive('delete')->with($path)->andReturnTrue();
 
-        $this->assertNull($this->storage->get('foo'));
+        self::assertNull($this->storage->get('foo'));
     }
 
     public function testSetsWithDefaultTTL(): void
@@ -88,7 +87,7 @@ final class FileStorageTest extends TestCase
 
         $this->files->shouldReceive('write')->with(self::DEFAULT_PATH, $value, null, true)->andReturnTrue();
 
-        $this->assertTrue($this->storage->set('foo', 'bar'));
+        self::assertTrue($this->storage->set('foo', 'bar'));
     }
 
     public function testSetsWithTTLInSeconds(): void
@@ -98,7 +97,7 @@ final class FileStorageTest extends TestCase
 
         $this->files->shouldReceive('write')->with(self::DEFAULT_PATH, $value, null, true)->andReturnTrue();
 
-        $this->assertTrue($this->storage->set('foo', 'bar', 30));
+        self::assertTrue($this->storage->set('foo', 'bar', 30));
     }
 
     public function testSetsWithTTLInDateInterval(): void
@@ -108,7 +107,7 @@ final class FileStorageTest extends TestCase
 
         $this->files->shouldReceive('write')->with(self::DEFAULT_PATH, $value, null, true)->andReturnTrue();
 
-        $this->assertTrue($this->storage->set('foo', 'bar', new \DateInterval('PT30S')));
+        self::assertTrue($this->storage->set('foo', 'bar', new \DateInterval('PT30S')));
     }
 
     public function testSetsWithTTLInDateTime(): void
@@ -118,7 +117,7 @@ final class FileStorageTest extends TestCase
 
         $this->files->shouldReceive('write')->with(self::DEFAULT_PATH, $value, null, true)->andReturnTrue();
 
-        $this->assertTrue($this->storage->set('foo', 'bar', new \DateTime('+30 seconds')));
+        self::assertTrue($this->storage->set('foo', 'bar', new \DateTime('+30 seconds')));
     }
 
     public function testDeleteExistsKey(): void
@@ -128,7 +127,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('exists')->with($path)->andReturnTrue();
         $this->files->shouldReceive('delete')->with($path)->andReturnTrue();
 
-        $this->assertTrue($this->storage->delete('foo'));
+        self::assertTrue($this->storage->delete('foo'));
     }
 
     public function testDeleteNonExistsKey(): void
@@ -146,7 +145,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('isDirectory')->with('path/to/cache')->andReturnTrue();
         $this->files->shouldReceive('deleteDirectory')->with('path/to/cache');
 
-        $this->assertTrue($this->storage->clear());
+        self::assertTrue($this->storage->clear());
     }
 
     public function testClearCacheWithNotExistsDirectory(): void
@@ -154,7 +153,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('isDirectory')->with('path/to/cache')->andReturnFalse();
         $this->files->shouldNotReceive('deleteDirectory');
 
-        $this->assertFalse($this->storage->clear());
+        self::assertFalse($this->storage->clear());
     }
 
     public function testGetsMultipleKeys(): void
@@ -174,7 +173,7 @@ final class FileStorageTest extends TestCase
             'path/to/cache/bb/e9/bbe960a25ea311d21d40669e93df2003ba9b90a2'
         )->andReturnFalse();
 
-        $this->assertSame([
+        self::assertSame([
             'foo' => 'abc',
             'bar' => 'cde',
             'baz' => null,
@@ -197,13 +196,11 @@ final class FileStorageTest extends TestCase
             ->with('path/to/cache/bb/e9/bbe960a25ea311d21d40669e93df2003ba9b90a2', $ttl . 's:3:"bar";', null, true)
             ->andReturnTrue();
 
-        $this->assertTrue(
-            $this->storage->setMultiple([
-                'foo' => 'baz',
-                'bar' => 'foo',
-                'baz' => 'bar',
-            ])
-        );
+        self::assertTrue($this->storage->setMultiple([
+            'foo' => 'baz',
+            'bar' => 'foo',
+            'baz' => 'bar',
+        ]));
     }
 
     public function testSetsMultipleWithCustomTTL(): void
@@ -222,13 +219,11 @@ final class FileStorageTest extends TestCase
             ->with('path/to/cache/bb/e9/bbe960a25ea311d21d40669e93df2003ba9b90a2', $ttl . 's:3:"bar";', null, true)
             ->andReturnTrue();
 
-        $this->assertTrue(
-            $this->storage->setMultiple([
-                'foo' => 'baz',
-                'bar' => 'foo',
-                'baz' => 'bar',
-            ], 30)
-        );
+        self::assertTrue($this->storage->setMultiple([
+            'foo' => 'baz',
+            'bar' => 'foo',
+            'baz' => 'bar',
+        ], 30));
     }
 
     public function testSetsMultipleWithFalseResult(): void
@@ -236,13 +231,11 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('write')->times(2)->andReturnTrue();
         $this->files->shouldReceive('write')->once()->andReturnFalse();
 
-        $this->assertFalse(
-            $this->storage->setMultiple([
-                'foo' => 'baz',
-                'bar' => 'foo',
-                'baz' => 'bar',
-            ])
-        );
+        self::assertFalse($this->storage->setMultiple([
+            'foo' => 'baz',
+            'bar' => 'foo',
+            'baz' => 'bar',
+        ]));
     }
 
     public function testDeleteMultiple(): void
@@ -250,7 +243,7 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('exists')->times(3)->andReturnTrue();
         $this->files->shouldReceive('delete')->times(3)->andReturnTrue();
 
-        $this->assertTrue($this->storage->deleteMultiple(['foo', 'bar', 'baz']));
+        self::assertTrue($this->storage->deleteMultiple(['foo', 'bar', 'baz']));
     }
 
     public function testDeleteMultipleWithFalseResult(): void
@@ -259,18 +252,18 @@ final class FileStorageTest extends TestCase
         $this->files->shouldReceive('delete')->times(2)->andReturnTrue();
         $this->files->shouldReceive('delete')->once()->andReturnFalse();
 
-        $this->assertFalse($this->storage->deleteMultiple(['foo', 'bar', 'baz']));
+        self::assertFalse($this->storage->deleteMultiple(['foo', 'bar', 'baz']));
     }
 
     public function testHasCacheValueShouldReturnTrueIfItExists(): void
     {
         $this->files->shouldReceive('exists')->once()->andReturnTrue();
-        $this->assertTrue($this->storage->has('foo'));
+        self::assertTrue($this->storage->has('foo'));
     }
 
     public function testHasCacheValueShouldReturnFalseIfItNotExists(): void
     {
         $this->files->shouldReceive('exists')->once()->andReturnFalse();
-        $this->assertFalse($this->storage->has('foo'));
+        self::assertFalse($this->storage->has('foo'));
     }
 }
