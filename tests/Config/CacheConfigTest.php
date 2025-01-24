@@ -10,8 +10,42 @@ use Spiral\Cache\Exception\InvalidArgumentException;
 
 final class CacheConfigTest extends TestCase
 {
-    /** @var CacheConfig */
-    private $config;
+    private CacheConfig $config;
+
+    public function testGetdDefaultDriver(): void
+    {
+        self::assertSame('array', $this->config->getDefaultStorage());
+    }
+
+    public function testGetsStorageConfigByStorageName(): void
+    {
+        self::assertSame([
+            'type' => 'file-storage',
+        ], $this->config->getStorageConfig('filesystem'));
+    }
+
+    public function testGetsStorageWithAliasTypeShouldBeReplacedWithRealType(): void
+    {
+        self::assertSame([
+            'type' => 'array-storage',
+        ], $this->config->getStorageConfig('local'));
+    }
+
+    public function testNotDefinedStorageShouldThrowAnException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Config for storage `foo` is not defined.');
+
+        $this->config->getStorageConfig('foo');
+    }
+
+    public function testStorageWithoutDefinedTypeShouldThrowAnException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Storage type for `memory` is not defined.');
+
+        $this->config->getStorageConfig('memory');
+    }
 
     protected function setUp(): void
     {
@@ -39,50 +73,5 @@ final class CacheConfigTest extends TestCase
                 'memory' => [],
             ],
         ]);
-    }
-
-
-    public function testGetdDefaultDriver(): void
-    {
-        $this->assertSame(
-            'array',
-            $this->config->getDefaultStorage()
-        );
-    }
-
-    public function testGetsStorageConfigByStorageName(): void
-    {
-        $this->assertSame(
-            [
-                'type' => 'file-storage',
-            ],
-            $this->config->getStorageConfig('filesystem')
-        );
-    }
-
-    public function testGetsStorageWithAliasTypeShouldBeReplacedWithRealType(): void
-    {
-        $this->assertSame(
-            [
-                'type' => 'array-storage',
-            ],
-            $this->config->getStorageConfig('local')
-        );
-    }
-
-    public function testNotDefinedStorageShouldThrowAnException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Config for storage `foo` is not defined.');
-
-        $this->config->getStorageConfig('foo');
-    }
-
-    public function testStorageWithoutDefinedTypeShouldThrowAnException(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Storage type for `memory` is not defined.');
-
-        $this->config->getStorageConfig('memory');
     }
 }

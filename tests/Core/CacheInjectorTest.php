@@ -5,8 +5,6 @@ namespace Spiral\Tests\Cache\Core;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
-use ReflectionClass;
-use RuntimeException;
 use Spiral\Cache\CacheManager;
 use Spiral\Cache\CacheRepository;
 use Spiral\Cache\Config\CacheConfig;
@@ -22,32 +20,32 @@ final class CacheInjectorTest extends TestCase
     public function testGetByContext(): void
     {
         $injector = $this->createInjector();
-        $reflection = new ReflectionClass(ArrayStorage::class);
+        $reflection = new \ReflectionClass(ArrayStorage::class);
 
         $result = $injector->createInjection($reflection, 'array');
 
-        $this->assertInstanceOf(CacheRepository::class, $result);
-        $this->assertInstanceOf(ArrayStorage::class, $result->getStorage());
+        self::assertInstanceOf(CacheRepository::class, $result);
+        self::assertInstanceOf(ArrayStorage::class, $result->getStorage());
     }
 
     public function testGetByIncorrectContext(): void
     {
         $injector = $this->createInjector();
-        $reflection = new ReflectionClass(CacheInterface::class);
+        $reflection = new \ReflectionClass(CacheInterface::class);
 
         $result = $injector->createInjection($reflection, 'userCache');
 
         // The default connection should be returned
-        $this->assertSame($this->defaultCache, $result->getStorage());
+        self::assertSame($this->defaultCache, $result->getStorage());
     }
 
     public function testBadArgumentTypeException(): void
     {
         $injector = $this->createInjector();
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('The cache obtained by the context');
 
-        $reflection = new ReflectionClass(ArrayStorage::class);
+        $reflection = new \ReflectionClass(ArrayStorage::class);
         $injector->createInjection($reflection, 'cache');
     }
 
@@ -75,9 +73,9 @@ final class CacheInjectorTest extends TestCase
         $factory = m::mock(FactoryInterface::class);
         $factory->shouldReceive('make')->andReturnUsing(function (string $name): CacheInterface {
             $result = [
-                    'test' => $this->defaultCache,
-                    'array' => new ArrayStorage(),
-                ][$name] ?? null;
+                'test' => $this->defaultCache,
+                'array' => new ArrayStorage(),
+            ][$name] ?? null;
             if ($result === null) {
                 throw new NotFoundException();
             }

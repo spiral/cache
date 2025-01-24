@@ -11,6 +11,7 @@ use Spiral\Boot\DirectoriesInterface;
 use Spiral\Boot\EnvironmentInterface;
 use Spiral\Cache\CacheManager;
 use Spiral\Cache\CacheStorageProviderInterface;
+use Spiral\Cache\CacheStorageRegistryInterface;
 use Spiral\Cache\Config\CacheConfig;
 use Spiral\Cache\Core\CacheInjector;
 use Spiral\Cache\Storage\ArrayStorage;
@@ -23,20 +24,20 @@ use Spiral\Core\FactoryInterface;
 final class CacheBootloader extends Bootloader
 {
     protected const SINGLETONS = [
+        CacheStorageRegistryInterface::class => CacheManager::class,
         CacheStorageProviderInterface::class => CacheManager::class,
         CacheManager::class => [self::class, 'initCacheManager'],
     ];
 
     public function __construct(
-        private readonly ConfiguratorInterface $config
-    ) {
-    }
+        private readonly ConfiguratorInterface $config,
+    ) {}
 
     public function registerTypeAlias(string $storageClass, string $alias): void
     {
         $this->config->modify(
             CacheConfig::CONFIG,
-            new Append('typeAliases', $alias, $storageClass)
+            new Append('typeAliases', $alias, $storageClass),
         );
     }
 
@@ -51,14 +52,14 @@ final class CacheBootloader extends Bootloader
         BinderInterface $binder,
         FactoryInterface $factory,
         CacheConfig $config,
-        ?EventDispatcherInterface $dispatcher = null
+        ?EventDispatcherInterface $dispatcher = null,
     ): CacheManager {
         $manager = new CacheManager($config, $factory, $dispatcher);
 
         foreach ($config->getAliases() as $alias => $storageName) {
             $binder->bind(
                 $alias,
-                static fn (CacheManager $manager): CacheInterface => $manager->storage($storageName)
+                static fn(CacheManager $manager): CacheInterface => $manager->storage($storageName),
             );
         }
 
@@ -85,7 +86,7 @@ final class CacheBootloader extends Bootloader
                     'array' => ArrayStorage::class,
                     'file' => FileStorage::class,
                 ],
-            ]
+            ],
         );
     }
 }
