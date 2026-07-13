@@ -16,8 +16,9 @@ class ArrayStorage implements CacheInterface
     protected array $storage = [];
 
     public function __construct(
-        private readonly int $ttl = 2_592_000,
-    ) {}
+        private readonly int $ttl = 2_592_000
+    ) {
+    }
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -83,7 +84,7 @@ class ArrayStorage implements CacheInterface
             $this->set($key, $value, $ttl);
         }
 
-        return true;
+        return false;
     }
 
     public function deleteMultiple(iterable $keys): bool

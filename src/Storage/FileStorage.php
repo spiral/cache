@@ -15,8 +15,9 @@ final class FileStorage implements CacheInterface
     public function __construct(
         private readonly FilesInterface $files,
         private readonly string $path,
-        private readonly int $ttl = 2_592_000,
-    ) {}
+        private readonly int $ttl = 2_592_000
+    ) {
+    }
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -29,7 +30,7 @@ final class FileStorage implements CacheInterface
             $this->makePath($key),
             $this->ttlToTimestamp($ttl) . \serialize($value),
             null,
-            true,
+            true
         );
     }
 
@@ -113,7 +114,7 @@ final class FileStorage implements CacheInterface
             $expire = (int) \substr(
                 $contents = $this->files->read($path),
                 0,
-                10,
+                10
             );
         } catch (FileNotFoundException) {
             return $this->makeEmptyPayload();
