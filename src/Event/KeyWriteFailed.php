@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Spiral\Cache\Event;
 
 /**
- * Triggered after cache item is written.
+ * Triggered when cache write operation failed.
  */
-final class KeyWritten extends CacheEvent
+final class KeyWriteFailed extends CacheEvent
 {
     public function __construct(
         string $key,

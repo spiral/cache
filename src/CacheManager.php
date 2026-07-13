@@ -11,17 +11,16 @@ use Spiral\Core\Attribute\Singleton;
 use Spiral\Core\FactoryInterface;
 
 #[Singleton]
-class CacheManager implements CacheStorageProviderInterface
+class CacheManager implements CacheStorageProviderInterface, CacheStorageRegistryInterface
 {
-    /** @var CacheInterface[] */
+    /** @var array<non-empty-string, CacheInterface> */
     private array $storages = [];
 
     public function __construct(
         private readonly CacheConfig $config,
         private readonly FactoryInterface $factory,
         private readonly ?EventDispatcherInterface $dispatcher = null,
-    ) {
-    }
+    ) {}
 
     public function storage(?string $name = null): CacheInterface
     {
@@ -41,6 +40,16 @@ class CacheManager implements CacheStorageProviderInterface
         }
 
         return new CacheRepository($this->storages[$storage], $this->dispatcher, $prefix);
+    }
+
+    public function register(string $name, CacheInterface $cache): void
+    {
+        $this->storages[$name] = $cache;
+    }
+
+    public function getCacheStorages(): array
+    {
+        return $this->storages;
     }
 
     private function resolve(?string $name): CacheInterface

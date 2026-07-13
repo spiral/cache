@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Spiral\Cache\Event;
 
-final class CacheHit
+/**
+ * Triggered when cache item is successfully retrieved.
+ */
+final class CacheHit extends CacheEvent
 {
     public function __construct(
-        public readonly string $key,
-        public readonly mixed $value
+        string $key,
+        public readonly mixed $value,
     ) {
+        parent::__construct($key);
     }
 }
